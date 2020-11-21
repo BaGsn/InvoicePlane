@@ -104,3 +104,30 @@ function invoice_recMod10($in)
 
     return (10 - $carry) % 10;
 }
+
+
+
+
+function currencies()
+{
+    return array(
+        '1' => array(
+            'label' => 'SEK',
+            'symbol'=> 'kr'
+        ),
+        '2' => array(
+            'label' => 'EUR',
+            'symbol'=> '€'
+        ),
+        '3' => array(
+            'label' => 'USD',
+            'symbol'=> '$'
+        )
+    );
+}
+
+function get_currency_symbol($currency_id)
+{
+    $currencies = currencies();
+    return($currencies["$currency_id"]['symbol']);
+}

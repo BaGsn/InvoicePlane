@@ -114,8 +114,7 @@
                                 <?php _trans('default_list_limit'); ?>
                             </label>
                             <input type="number" name="settings[default_list_limit]" id="default_list_limit"
-                                class="form-control" minlength="1" min="1" required
-                                value="<?php echo get_setting('default_list_limit', 15, true) ?>">
+                               class="form-control" value="$" disabled="disabled">
                         </div>
                     </div>
                 </div>

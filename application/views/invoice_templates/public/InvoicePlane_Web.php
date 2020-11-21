@@ -22,7 +22,7 @@
 
         <div class="webpreview-header">
 
-            <h2><?php echo trans('invoice'); ?>&nbsp;<?php echo $invoice->invoice_number; ?></h2>
+            <h4 style="float: left;padding: 0 0 10px;"><?php echo trans('invoice'); ?>&nbsp;<?php echo $invoice->invoice_number; ?></h4>
 
             <div class="btn-group">
                 <?php if ($invoice->sumex_id == NULL) : ?>
@@ -32,7 +32,7 @@
                     <a href="<?php echo site_url('guest/view/generate_sumex_pdf/' . $invoice_url_key); ?>"
                        class="btn btn-primary">
                         <?php endif; ?>
-                        <i class="fa fa-print"></i> <?php echo trans('download_pdf'); ?>
+                        <?php echo trans('download_pdf'); ?>
                     </a>
                     <?php if (get_setting('enable_online_payments') == 1 && $invoice->invoice_balance > 0) { ?>
                         <a href="<?php echo site_url('guest/payment_information/form/' . $invoice_url_key); ?>"
@@ -44,18 +44,18 @@
 
         </div>
 
-        <hr>
-
         <?php echo $this->layout->load_view('layout/alerts'); ?>
 
         <div class="invoice">
-
+            <div style="max-width:25em;">
             <?php
             $logo = invoice_logo();
             if ($logo) {
-                echo $logo . '<br><br>';
+                echo $logo;
             }
             ?>
+            </div>
+            <br><br>
 
             <div class="row">
                 <div class="col-xs-12 col-md-6 col-lg-5">
@@ -89,7 +89,7 @@
 
                 </div>
                 <div class="col-lg-2"></div>
-                <div class="col-xs-12 col-md-6 col-lg-5 text-right">
+                <div class="col-xs-12 col-md-6 col-lg-5 text-left">
 
                     <h4><?php _htmlsc(format_client($invoice)); ?></h4>
                     <p><?php if ($invoice->client_vat_id) {
@@ -125,17 +125,17 @@
                         <tbody>
                         <tr>
                             <td><?php echo trans('invoice_date'); ?></td>
-                            <td style="text-align:right;"><?php echo date_from_mysql($invoice->invoice_date_created); ?></td>
+                            <td style="text-align:left;"><?php echo date_from_mysql($invoice->invoice_date_created); ?></td>
                         </tr>
                         <tr class="<?php echo($is_overdue ? 'overdue' : '') ?>">
                             <td><?php echo trans('due_date'); ?></td>
-                            <td class="text-right">
+                            <td class="text-left">
                                 <?php echo date_from_mysql($invoice->invoice_date_due); ?>
                             </td>
                         </tr>
                         <tr class="<?php echo($is_overdue ? 'overdue' : '') ?>">
                             <td><?php echo trans('amount_due'); ?></td>
-                            <td style="text-align:right;"><?php echo format_currency($invoice->invoice_balance); ?></td>
+                             <td style="text-align:left;"><?php echo format_currency($invoice->invoice_balance, $invoice->invoice_currency); ?></td>>
                         </tr>
                         <?php if ($payment_method): ?>
                             <tr>
@@ -176,22 +176,22 @@
                                         <small><?php _htmlsc($item->item_product_unit); ?></small>
                                     <?php endif; ?>
                                 </td>
-                                <td class="amount"><?php echo format_currency($item->item_price); ?></td>
-                                <td class="amount"><?php echo format_currency($item->item_discount); ?></td>
-                                <td class="amount"><?php echo format_currency($item->item_subtotal); ?></td>
+                                <td class="amount"><?php echo format_currency($item->item_price, $invoice->invoice_currency); ?></td>
+                                <td class="amount"><?php echo format_currency($item->item_discount, $invoice->invoice_currency); ?></td>
+                                <td class="amount"><?php echo format_currency($item->item_subtotal, $invoice->invoice_currency); ?></td>
                             </tr>
                         <?php endforeach ?>
                         <tr>
                             <td colspan="4"></td>
                             <td class="text-right"><?php echo trans('subtotal'); ?>:</td>
-                            <td class="amount"><?php echo format_currency($invoice->invoice_item_subtotal); ?></td>
+                            <td class="amount"><?php echo format_currency($invoice->invoice_item_subtotal, $invoice->invoice_currency); ?></td>
                         </tr>
 
                         <?php if ($invoice->invoice_item_tax_total > 0) { ?>
                             <tr>
                                 <td class="no-bottom-border" colspan="4"></td>
                                 <td class="text-right"><?php echo trans('item_tax'); ?></td>
-                                <td class="amount"><?php echo format_currency($invoice->invoice_item_tax_total); ?></td>
+                                <td class="amount"><?php echo format_currency($invoice->invoice_item_tax_total, $invoice->invoice_currency); ?></td>>
                             </tr>
                         <?php } ?>
 
@@ -202,7 +202,7 @@
                                     <?php echo htmlsc($invoice_tax_rate->invoice_tax_rate_name) . ' ' . format_amount($invoice_tax_rate->invoice_tax_rate_percent); ?>
                                     %
                                 </td>
-                                <td class="amount"><?php echo format_currency($invoice_tax_rate->invoice_tax_rate_amount); ?></td>
+                                <td class="amount"><?php echo format_currency($invoice_tax_rate->invoice_tax_rate_amount, $invoice->invoice_currency); ?></td>
                             </tr>
                         <?php endforeach ?>
 
@@ -223,19 +223,19 @@
                         <tr>
                             <td class="no-bottom-border" colspan="4"></td>
                             <td class="text-right"><?php echo trans('total'); ?>:</td>
-                            <td class="amount"><?php echo format_currency($invoice->invoice_total); ?></td>
+                            <td class="amount"><?php echo format_currency($invoice->invoice_total, $invoice->invoice_currency); ?></td>
                         </tr>
 
                         <tr>
                             <td class="no-bottom-border" colspan="4"></td>
                             <td class="text-right"><?php echo trans('paid'); ?></td>
-                            <td class="amount"><?php echo format_currency($invoice->invoice_paid) ?></td>
+                            <td class="amount"><?php echo format_currency($invoice->invoice_paid, $invoice->invoice_currency); ?></td>
                         </tr>
                         <tr class="<?php echo ($invoice->invoice_balance > 0) ? 'overdue' : 'text-success'; ?>">
                             <td class="no-bottom-border" colspan="4"></td>
                             <td class="text-right"><?php echo trans('balance'); ?></td>
                             <td class="amount">
-                                <b><?php echo format_currency($invoice->invoice_balance) ?></b>
+                                <b><?php echo format_currency($invoice->invoice_balance, $invoice->invoice_currency); ?></b>
                             </td>
                         </tr>
                         </tbody>
@@ -250,8 +250,6 @@
                 } ?>
 
             </div><!-- .invoice-items -->
-
-            <hr>
 
             <div class="row">
 

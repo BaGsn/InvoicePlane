@@ -70,6 +70,7 @@ class Invoices extends Admin_Controller
                 'filter_placeholder' => trans('filter_invoices'),
                 'filter_method' => 'filter_invoices',
                 'invoice_statuses' => $this->mdl_invoices->statuses(),
+                'invoice_currencies' => currencies(),
             ]
         );
 
@@ -203,6 +204,7 @@ class Invoices extends Admin_Controller
                     'decimal_point' => get_setting('decimal_point'),
                 ],
                 'invoice_statuses' => $this->mdl_invoices->statuses(),
+                'invoice_currencies' => currencies(),
                 'payment_cf_exist' => $payment_cf_exist,
             ]
         );

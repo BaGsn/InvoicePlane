@@ -15,6 +15,7 @@
     </div>
 
     <div id="client">
+        <div>To:</div>
         <div>
             <b><?php _htmlsc(format_client($invoice)); ?></b>
         </div>
@@ -55,6 +56,7 @@
 
     </div>
     <div id="company">
+        <div>From:</div>
         <div><b><?php _htmlsc($invoice->user_name); ?></b></div>
         <?php if ($invoice->user_vat_id) {
             echo '<div>' . trans('vat_id_short') . ': ' . $invoice->user_vat_id . '</div>';
@@ -112,7 +114,7 @@
             </tr>
             <tr>
                 <td><?php echo trans('amount_due') . ': '; ?></td>
-                <td><?php echo format_currency($invoice->invoice_balance); ?></td>
+                <td><?php echo format_currency($invoice->invoice_balance, $invoice->invoice_currency); ?></td>
             </tr>
             <?php if ($payment_method): ?>
                 <tr>
@@ -130,7 +132,7 @@
         <tr>
             <th class="item-name"><?php _trans('item'); ?></th>
             <th class="item-desc"><?php _trans('description'); ?></th>
-            <th class="item-amount text-right"><?php _trans('qty'); ?></th>
+            <th class="item-amount text-right"><?php //_trans('qty'); ?></th>
             <th class="item-price text-right"><?php _trans('price'); ?></th>
             <?php if ($show_item_discounts) : ?>
                 <th class="item-discount text-right"><?php _trans('discount'); ?></th>
@@ -153,15 +155,15 @@
                     <?php endif; ?>
                 </td>
                 <td class="text-right">
-                    <?php echo format_currency($item->item_price); ?>
+                    <?php echo format_currency($item->item_price, $invoice->invoice_currency); ?>
                 </td>
                 <?php if ($show_item_discounts) : ?>
                     <td class="text-right">
-                        <?php echo format_currency($item->item_discount); ?>
+                        <?php echo format_currency($item->item_discount, $invoice->invoice_currency); ?>
                     </td>
                 <?php endif; ?>
                 <td class="text-right">
-                    <?php echo format_currency($item->item_total); ?>
+                    <?php echo format_currency($item->item_total, $invoice->invoice_currency); ?>
                 </td>
             </tr>
         <?php } ?>
@@ -173,7 +175,7 @@
             <td <?php echo($show_item_discounts ? 'colspan="5"' : 'colspan="4"'); ?> class="text-right">
                 <?php _trans('subtotal'); ?>
             </td>
-            <td class="text-right"><?php echo format_currency($invoice->invoice_item_subtotal); ?></td>
+            <td class="text-right"><?php echo format_currency($invoice->invoice_item_subtotal, $invoice->invoice_currency); ?></td>
         </tr>
 
         <?php if ($invoice->invoice_item_tax_total > 0) { ?>
@@ -182,7 +184,7 @@
                     <?php _trans('item_tax'); ?>
                 </td>
                 <td class="text-right">
-                    <?php echo format_currency($invoice->invoice_item_tax_total); ?>
+                    <?php echo format_currency($invoice->invoice_item_tax_total, $invoice->invoice_currency); ?>
                 </td>
             </tr>
         <?php } ?>
@@ -193,7 +195,7 @@
                     <?php echo htmlsc($invoice_tax_rate->invoice_tax_rate_name) . ' (' . format_amount($invoice_tax_rate->invoice_tax_rate_percent) . '%)'; ?>
                 </td>
                 <td class="text-right">
-                    <?php echo format_currency($invoice_tax_rate->invoice_tax_rate_amount); ?>
+                    <?php echo format_currency($invoice_tax_rate->invoice_tax_rate_amount, $invoice->invoice_currency); ?>
                 </td>
             </tr>
         <?php endforeach ?>
@@ -214,7 +216,7 @@
                     <?php _trans('discount'); ?>
                 </td>
                 <td class="text-right">
-                    <?php echo format_currency($invoice->invoice_discount_amount); ?>
+                    <?php echo format_currency($invoice->invoice_discount_amount, $invoice->invoice_currency); ?>
                 </td>
             </tr>
         <?php endif; ?>
@@ -224,7 +226,7 @@
                 <b><?php _trans('total'); ?></b>
             </td>
             <td class="text-right">
-                <b><?php echo format_currency($invoice->invoice_total); ?></b>
+                <b><?php echo format_currency($invoice->invoice_total, $invoice->invoice_currency); ?></b>
             </td>
         </tr>
         <tr>
@@ -232,7 +234,7 @@
                 <?php _trans('paid'); ?>
             </td>
             <td class="text-right">
-                <?php echo format_currency($invoice->invoice_paid); ?>
+                <?php echo format_currency($invoice->invoice_paid, $invoice->invoice_currency); ?>
             </td>
         </tr>
         <tr>
@@ -240,7 +242,7 @@
                 <b><?php _trans('balance'); ?></b>
             </td>
             <td class="text-right">
-                <b><?php echo format_currency($invoice->invoice_balance); ?></b>
+                <b><?php echo format_currency($invoice->invoice_balance, $invoice->invoice_currency); ?></b>
             </td>
         </tr>
         </tbody>
