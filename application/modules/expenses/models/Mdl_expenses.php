@@ -6,128 +6,127 @@ if (!defined('BASEPATH'))
  * 
  * A free and open source web based invoicing system
  *
- * @package     InvoicePlane
- * @author      Kovah (www.kovah.de)
- * @copyright   Copyright (c) 2012 - 2015 InvoicePlane.com
- * @license     https://invoiceplane.com/license.txt
- * @link        https://invoiceplane.com
+ * @package		InvoicePlane
+ * @author		Aeolun (www.serial-experiments.com)
+ * @copyright	Copyright (c) 2012 - 2016 InvoicePlane.com
+ * @license		https://invoiceplane.com/license.txt
+ * @link		https://invoiceplane.com
  * 
  */
-class Expenses extends Admin_Controller
+class Mdl_Expenses extends Response_Model
 {
-    public function __construct()
+    public $table = 'ip_expenses';
+    public $primary_key = 'ip_expenses.expense_id';
+    public $validation_rules = 'validation_rules';
+    public function default_select()
     {
-        parent::__construct();
-        $this->load->model('mdl_expenses');
+        $this->db->select("
+            SQL_CALC_FOUND_ROWS ip_expense_custom.*,
+            ip_payment_methods.*,
+            ip_clients.client_name,
+            ip_clients.client_id,
+            ip_tax_rates.tax_rate_name,
+            ip_tax_rates.tax_rate_percent,
+            ip_expenses.*", FALSE);
     }
-    public function index($page = 0)
+    public function default_order_by()
     {
-        $this->mdl_expenses->paginate(site_url('expenses/index'), $page);
-        $payments = $this->mdl_expenses->result();
-        $this->layout->set(
-            array(
-                'expenses' => $payments,
-                'filter_display' => TRUE,
-                'filter_placeholder' => lang('filter_expenses'),
-                'filter_method' => 'filter_expenses'
+        $this->db->order_by('ip_expenses.expense_date DESC');
+    }
+    public function default_join()
+    {
+        $this->db->join('ip_payment_methods', 'ip_payment_methods.payment_method_id = ip_expenses.payment_method_id', 'left');
+        $this->db->join('ip_expense_custom', 'ip_expense_custom.expense_id = ip_expenses.expense_id', 'left');
+        $this->db->join('ip_clients', 'ip_clients.client_id = ip_expenses.client_id', 'left');
+        $this->db->join('ip_tax_rates', 'ip_tax_rates.tax_rate_id = ip_expenses.tax_rate_id', 'left');
+    }
+    public function validation_rules()
+    {
+        return array(
+            'expense_date' => array(
+                'field' => 'expense_date',
+                'label' => lang('date'),
+                'rules' => 'required'
+            ),
+            'expense_amount' => array(
+                'field' => 'expense_amount',
+                'label' => lang('payment'),
+                'rules' => 'required'
+            ),
+            'tax_rate_id' => array(
+                'field' => 'tax_rate_id',
+                'label' => lang('tax_rate')
+            ),
+            'payment_method_id' => array(
+                'field' => 'payment_method_id',
+                'label' => lang('payment_method')
+            ),
+            'expense_note' => array(
+                'field' => 'expense_note',
+                'label' => lang('note')
+            ),
+            'client_id' => array(
+                'field' => 'client_id',
+                'label' => lang('client')
             )
         );
-        $this->layout->buffer('content', 'expenses/index');
-        $this->layout->render();
+    }
+    public function save($id = NULL, $db_array = NULL)
+    {
+        $db_array = ($db_array) ? $db_array : $this->db_array();
+        // Save the payment
+        $id = parent::save($id, $db_array);
+        return $id;
     }
 
 
-    public function form($id = NULL)
+	public function get_extension($file) 
+	{
+	 $extension = end(explode(".", $file));
+	 return $extension ? $extension : false;
+	}
+
+    public function db_array()
     {
-
-        if ($this->input->post('btn_cancel')) 
-        {
-            redirect('expenses');
-        }
-        $this->load->model('custom_fields/mdl_expense_custom');
-
-        if ($this->mdl_expenses->run_validation())
-        {
-            $id = $this->mdl_expenses->save($id);
-            $this->mdl_expense_custom->save_custom($id, $this->input->post('custom'));
-            redirect('expenses');
-        }
-        if (!$this->input->post('btn_submit')) 
-        {
-            $prep_form = $this->mdl_expenses->prep_form($id);
-            if ($id and !$prep_form) {
-                show_404();
-            }
-            $expense_custom = $this->mdl_expense_custom->where('expense_id', $id)->get();
-            if ($expense_custom->num_rows()) {
-                $expense_custom = $expense_custom->row();
-                unset($expense_custom->expense_id, $expense_custom->expense_custom_id);
-                foreach ($expense_custom as $key => $val) {
-                    $this->mdl_expenses->set_form_value('custom[' . $key . ']', $val);
-                }
-            }
-        } 
-        else 
-        {
-            if ($this->input->post('custom')) 
-            {
-                foreach ($this->input->post('custom') as $key => $val) 
-                {
-                    $this->mdl_expenses->set_form_value('custom[' . $key . ']', $val);
-                }
-            }
-        }
+        $db_array = parent::db_array();
+        $db_array['expense_date'] = date_to_mysql($db_array['expense_date']);
+        $db_array['expense_amount'] = standardize_amount($db_array['expense_amount']);
 
 
-        $this->load->model('invoices/mdl_invoices');
-        $this->load->model('clients/mdl_clients');
-        $this->load->model('tax_rates/mdl_tax_rates');
-        $this->load->model('payment_methods/mdl_payment_methods');
-        $this->load->model('custom_fields/mdl_custom_fields');
-        $this->layout->set(
-            array(
-                'expense_id' => $id,
-                'payment_methods' => $this->mdl_payment_methods->get()->result(),
-                'clients' => $this->mdl_clients->get()->result(),
-                'tax_rates' => $this->mdl_tax_rates->get()->result(),
-                'custom_fields' => $this->mdl_custom_fields->by_table('ip_expense_custom')->get()->result(),
-            )
-        );
-        if ($id) {
-            $this->layout->set('payment', $this->mdl_expenses->where('ip_expenses.expense_id', $id)->get()->row());
-        }
-        $this->layout->buffer('content', 'expenses/form');
-        $this->layout->render();
+		$targetDir = "uploads/";
+		$fileName = basename($_FILES["expense_file"]["name"]);
+		$targetFilePath = $targetDir . $fileName;
+		$fileType = pathinfo($targetFilePath,PATHINFO_EXTENSION);
+
+
+		if(!empty($_FILES["expense_file"]["name"]))
+		{
+			// Allow certain file formats
+			$allowTypes = array('jpg','png','jpeg','gif','pdf');
+
+			$db_array['expense_file'] = base64_encode(file_get_contents($_FILES["expense_file"]["tmp_name"]));
+			$db_array['expense_file_name'] = $fileName;
+
+		}
+		else
+		{
+			$db_array['expense_file'] = "";
+			$db_array['expense_file_name'] = "";
+		}
+
+
+
+
+        return $db_array;
     }
-    public function delete($id)
+    public function prep_form($id = NULL)
     {
-        $this->mdl_expenses->delete($id);
-        redirect('expenses');
-    }
-    public function remove($id=NULL)
-    {
-        if($id!=NULL)
-        {
-            $this->mdl_expenses->delete($id);   
-            redirect('expenses');
+        if (!parent::prep_form($id)) {
+            return FALSE;
         }
-        else
-        {
-            redirect('expenses');
+        if (!$id) {
+            parent::set_form_value('expense_date', date('Y-m-d'));
         }
-    }
-    public function getfile($id=NULL)
-    {
-        $query = $this->db->query("SELECT expense_file, expense_file_name FROM ip_expenses where expense_id =$id");
-        $row = $query->row();
-        $data =  base64_decode($row->expense_file);
-        $name = $row->expense_file_name;
-
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-steam');
-        header('Content-Disposition: attachment; filename='.($name));
-        echo $data;
-        exit;
-
+        return TRUE;
     }
 } 
