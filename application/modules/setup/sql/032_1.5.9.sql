@@ -11,11 +11,15 @@ AUTO_INCREMENT=1;
 
 CREATE TABLE `ip_expenses` (
 	`expense_id` INT(11) NOT NULL AUTO_INCREMENT,
+	`tax_rate_id` INT(11) NOT NULL DEFAULT '0',
 	`payment_method_id` INT(11) NOT NULL DEFAULT '0',
 	`expense_date` DATE NOT NULL,
 	`expense_amount` DECIMAL(10,2) NOT NULL,
 	`expense_note` LONGTEXT NOT NULL,
 	`client_id` INT(11) NOT NULL,
+	`tax_rate_id` INT(11) NOT NULL DEFAULT '0',
+	`expense_file` LONGBLOB NOT NULL,
+	`expense_file_name` LONGTEXT NOT NULL,
 	PRIMARY KEY (`expense_id`),
 	INDEX `payment_method_id` (`payment_method_id`)
 ); 
